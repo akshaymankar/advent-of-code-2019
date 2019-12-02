@@ -4,6 +4,7 @@ module Main where
 import System.Environment
 import System.Exit
 import Day1
+import Day2
 
 main :: IO ()
 main = do
@@ -19,4 +20,5 @@ run =
   \case
     "day1-1" -> day1_1
     "day1-2" -> day1_2
+    "day2-1" -> day2_1
     x -> die $ "'" ++ x ++ "' is not implemented yet."
