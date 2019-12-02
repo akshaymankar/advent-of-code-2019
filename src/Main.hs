@@ -21,4 +21,5 @@ run =
     "day1-1" -> day1_1
     "day1-2" -> day1_2
     "day2-1" -> day2_1
+    "day2-2" -> day2_2
     x -> die $ "'" ++ x ++ "' is not implemented yet."

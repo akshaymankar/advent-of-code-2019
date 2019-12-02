@@ -6,20 +6,29 @@ import Data.Array
 
 day2_1 :: IO ()
 day2_1 = do
-  ints <- readInput
-  let intcode = listArray (0, length ints - 1) ints
-      result = executeIntcode $ replace1202 intcode
-  print $ result ! 0
+  intcode <- readInput
+  print $ executeIntcode $ withNounAndVerb 12 02 intcode
+
+day2_2 :: IO ()
+day2_2 = do
+  intcode <- readInput
+  let result = head [100 * noun + verb | noun <- [0..99]
+                                       , verb <- [0..99]
+                                       , let res = executeIntcode (withNounAndVerb noun verb intcode)
+                                         in res == 19690720]
+  print result
 
 type Code = Array Int Int
 type Pos = Int
+type Noun = Int
+type Verb = Int
 
-replace1202 :: Code -> Code
-replace1202 code = code // [(1,12), (2,2)]
+withNounAndVerb :: Noun -> Verb -> Code -> Code
+withNounAndVerb noun verb code = code // [(1,noun), (2,verb)]
 
-executeIntcode :: Code -> Code
+executeIntcode :: Code -> Int
 executeIntcode input =
-  snd $ go (0, input)
+  snd (go (0, input)) ! 0
   where
     go :: (Pos, Code) -> (Pos, Code)
     go (pos, code) =
@@ -44,11 +53,11 @@ binaryOperation f (op1, op2, result) code =
        b = code ! op2
   in code // [(result, a `f` b)]
 
-readInput :: IO [Int]
+readInput :: IO Code
 readInput = do
   inputStr <- getLine
   case readP_to_S inputReadP inputStr of
-    [(inputs, "")] -> pure inputs
+    [(ints, "")] -> pure $ listArray (0, length ints - 1) ints
     _ -> error $ "Failed to parse '" ++ inputStr ++ "'"
 
 inputReadP :: ReadP [Int]
