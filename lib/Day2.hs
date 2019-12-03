@@ -66,10 +66,7 @@ readInput = do
 
 inputReadP :: ReadP [Int]
 inputReadP = do
-  allButLast <- many1 $ intReadP <* commaReadP
-  lastOne <- intReadP
-  _ <- eof
-  pure $ allButLast ++ [lastOne]
+  sepBy1 intReadP commaReadP <* eof
 
 intReadP :: ReadP Int
 intReadP = do

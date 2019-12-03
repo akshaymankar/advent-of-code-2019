@@ -122,11 +122,8 @@ readWire = do
     _ -> error $ "Failed to parse '" ++ inputStr ++ "'"
 
 wireReadP :: ReadP Wire
-wireReadP = do
-  allButLast <- many1 $ wireSegmentReadP <* commaReadP
-  lastOne <- wireSegmentReadP
-  _ <- eof
-  pure $ allButLast ++ [lastOne]
+wireReadP =
+  sepBy1 wireSegmentReadP commaReadP <* eof
 
 wireSegmentReadP :: ReadP WireSegment
 wireSegmentReadP = do
