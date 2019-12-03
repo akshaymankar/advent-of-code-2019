@@ -37,3 +37,4 @@ library
                      , containers
   exposed-modules:     Day1
                      , Day2
+                     , Day3
