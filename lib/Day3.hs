@@ -147,4 +147,4 @@ intReadP = do
   pure $ read intStr
 
 commaReadP :: ReadP ()
-commaReadP = satisfy (== ',') *> pure ()
+commaReadP = decodeChar ',' ()

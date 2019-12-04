@@ -6,6 +6,7 @@ import System.Exit
 import Day1
 import Day2
 import Day3
+import Day4
 
 main :: IO ()
 main = do
@@ -25,4 +26,5 @@ run =
     "day2-2" -> day2_2
     "day3-1" -> day3_1
     "day3-2" -> day3_2
+    "day4-1" -> day4_1
     x -> die $ "'" ++ x ++ "' is not implemented yet."
