@@ -6,12 +6,19 @@ import Data.Char
 day4_1 :: IO ()
 day4_1 = do
   (lower, upper) <- readInput
-  print $ countPossibilities lower upper
+  let rules = [isSixDigits, digitsOnlyGrow, hasTwoAdjacentDigits]
+  print $ countPossibilities lower upper rules
 
-countPossibilities :: Int -> Int -> Int
-countPossibilities lower upper =
-  let rules = combineRules [isSixDigits, digitsOnlyGrow, hasTwoAdjacentDigits]
-  in length $ filter rules [lower..upper]
+day4_2 :: IO ()
+day4_2 = do
+  (lower, upper) <- readInput
+  let rules = [isSixDigits, digitsOnlyGrow, hasStrictlyTwoAdjacentDigits]
+  print $ countPossibilities lower upper rules
+
+
+countPossibilities :: Int -> Int -> [(Int -> Bool)] -> Int
+countPossibilities lower upper rules =
+  length $ filter (combineRules rules) [lower..upper]
 
 combineRules :: [(a -> Bool)] -> a -> Bool
 combineRules rules x = foldr (\f acc -> acc &&  f x) True rules
@@ -38,6 +45,16 @@ hasTwoAdjacentDigits n =
     go (d1:d2:ds)
       | d1 == d2 = True
       | otherwise = go (d2:ds)
+
+hasStrictlyTwoAdjacentDigits :: Int -> Bool
+hasStrictlyTwoAdjacentDigits n =
+  go $ toDigits n
+  where
+    go :: [Int] -> Bool
+    go [] = False
+    go (d:ds) = if length (takeWhile (== d) ds) == 1
+                then True
+                else go $ dropWhile (== d) ds
 
 toDigits :: Int -> [Int]
 toDigits n
