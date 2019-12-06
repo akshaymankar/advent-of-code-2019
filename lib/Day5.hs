@@ -2,7 +2,6 @@
 {-# LANGUAGE RecordWildCards #-}
 module Day5 where
 
-import qualified Day2
 import Data.Char
 import Data.Sequence
 import Text.ParserCombinators.ReadP
@@ -18,11 +17,15 @@ day5_2 = do
   print $ diagnosticCode $ outputs $ execute 5 input
 
 type Output = Int
-data ExecutionState = ExecutionState { pos :: Day2.Pos
-                                     , code :: Day2.Code
+type Code = Seq Int
+type Pos = Int
+
+data ExecutionState = ExecutionState { pos :: Pos
+                                     , code :: Code
                                      , outputs :: [Output]
                                      }
                     deriving Show
+
 data Mode = Position
           | Immediate
           deriving Show
@@ -44,7 +47,7 @@ diagnosticCode [x] = x
 diagnosticCode (0:xs) = diagnosticCode xs
 diagnosticCode (n:_) = error $ "Unexpected output: " ++ show n
 
-execute :: Int -> Day2.Code -> ExecutionState
+execute :: Int -> Code -> ExecutionState
 execute i c = do
   go (ExecutionState 0 c [])
   where
@@ -93,11 +96,11 @@ execute i c = do
         then go (state{ pos = readOperand m2 (pos + 2) })
         else go (state{ pos = pos + 3 })
 
-      readOperand :: Mode -> Day2.Pos -> Int
+      readOperand :: Mode -> Pos -> Int
       readOperand Immediate p = code `index` p
       readOperand Position p = readOperand Immediate (code `index` p)
 
-type BinaryOperation = ((Int, Int, Day2.Pos) -> Day2.Code -> Day2.Code)
+type BinaryOperation = ((Int, Int, Pos) -> Code -> Code)
 
 add :: BinaryOperation
 add = binaryOperation (+)
@@ -144,7 +147,7 @@ interpretOpCode n =
     thousands = somethings 1000
     somethings thing = (n `div` thing) `mod` 10
 
-readInput :: IO Day2.Code
+readInput :: IO Code
 readInput = do
   inputStr <- getLine
   case readP_to_S inputReadP inputStr of
