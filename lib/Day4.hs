@@ -15,7 +15,6 @@ day4_2 = do
   let rules = [isSixDigits, digitsOnlyGrow, hasStrictlyTwoAdjacentDigits]
   print $ countPossibilities lower upper rules
 
-
 countPossibilities :: Int -> Int -> [(Int -> Bool)] -> Int
 countPossibilities lower upper rules =
   length $ filter (combineRules rules) [lower..upper]
