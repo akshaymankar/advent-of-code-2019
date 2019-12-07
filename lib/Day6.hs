@@ -37,13 +37,10 @@ findShortestPath m yourOrbitee santasOrbitee =
       | src == dest = Just 0
       | otherwise =
         let neighbours = (findOrbitee src m):(findOrbiters src m)
-        in case filter (/= from) neighbours of
+        in case catMaybes $ map (go src dest) (filter (/= from) neighbours) of
              [] -> Nothing
-             xs ->
-               case catMaybes $ map (go src dest) xs of
-                 [] -> Nothing
-                 [found] -> Just (1 + found)
-                 _ -> error "Expected there to be exactly one path!"
+             [found] -> Just (1 + found)
+             _ -> error "Expected there to be exactly one path!"
 
 findOrbitee :: Orbiter -> Map Orbitee [Orbiter] -> Orbitee
 findOrbitee orbiter orbits =
