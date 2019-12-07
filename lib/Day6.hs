@@ -29,16 +29,6 @@ countOrbiters =
       let orbiters = findOrbiters o m
       in (n * length orbiters) + (sum $ map (go (n + 1) m) orbiters)
 
-findOrbitee :: Orbiter -> Map Orbitee [Orbiter] -> Orbitee
-findOrbitee orbiter orbits =
-  let potentialOrbitees = keys $ M.filter (elem orbiter) orbits
-  in case potentialOrbitees of
-       [orbitee] -> orbitee
-       xs -> "expected exactly one potential orbitee, but found " ++ show xs
-
-findOrbiters :: Orbitee -> Map Orbitee [Orbiter] -> [Orbiter]
-findOrbiters = findWithDefault []
-
 findShortestPath :: Map Orbitee [Orbiter] -> Orbitee -> Orbitee -> Int
 findShortestPath m yourOrbitee santasOrbitee =
   fromJust $ go "YOU" santasOrbitee yourOrbitee
@@ -54,6 +44,16 @@ findShortestPath m yourOrbitee santasOrbitee =
                  [] -> Nothing
                  [found] -> Just (1 + found)
                  _ -> error "Expected there to be exactly one path!"
+
+findOrbitee :: Orbiter -> Map Orbitee [Orbiter] -> Orbitee
+findOrbitee orbiter orbits =
+  let potentialOrbitees = keys $ M.filter (elem orbiter) orbits
+  in case potentialOrbitees of
+       [orbitee] -> orbitee
+       xs -> "expected exactly one potential orbitee, but found " ++ show xs
+
+findOrbiters :: Orbitee -> Map Orbitee [Orbiter] -> [Orbiter]
+findOrbiters = findWithDefault []
 
 readInput :: IO (Map Orbitee [Orbiter])
 readInput = do
