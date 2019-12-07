@@ -33,4 +33,5 @@ run =
     "day5-1" -> day5_1
     "day5-2" -> day5_2
     "day6-1" -> day6_1
+    "day6-2" -> day6_2
     x -> die $ "'" ++ x ++ "' is not implemented yet."
