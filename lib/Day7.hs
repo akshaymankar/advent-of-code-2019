@@ -15,6 +15,6 @@ calculateThrusterSignal amplifierController settings =
   foldr executeAmp 0 $ reverse settings
   where
     executeAmp setting input =
-      case outputs $ execute [setting, input] amplifierController of
+      case readOutputs $ execute [setting, input] amplifierController of
         [o] -> o
         os -> error $ "expected only one output, got " ++ show os

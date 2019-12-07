@@ -1,20 +1,36 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 module Day5 where
 
 import Data.Char
 import Data.Sequence
 import Text.ParserCombinators.ReadP
+import Control.Monad.Writer
+import Data.Functor.Identity
 
 day5_1 :: IO ()
 day5_1 = do
   input <- readInput
-  print $ diagnosticCode $ outputs $ execute [1] input
+  print
+    $ diagnosticCode
+    $ readOutputs
+    $ execute [1] input
 
 day5_2 :: IO ()
 day5_2 = do
   input <- readInput
-  print $ diagnosticCode $ outputs $ execute [5] input
+  print
+    $ diagnosticCode
+    $ readOutputs
+    $ execute [5] input
+
+readOutputs :: Writer [Int] a -> [Int]
+readOutputs = runIdentity . execWriterT
+
+readExecState :: Writer w ExecutionState -> ExecutionState
+readExecState = fst . runIdentity . runWriterT
 
 type Input = Int
 type Output = Int
@@ -24,7 +40,6 @@ type Pos = Int
 data ExecutionState = ExecutionState { pos :: Pos
                                      , code :: Code
                                      , inputs :: [Input]
-                                     , outputs :: [Output]
                                      }
                     deriving Show
 
@@ -43,28 +58,30 @@ data Instruction = Add Mode Mode
                  | Halt
                  deriving Show
 
+type OutputMonad = MonadWriter [Int]
+
 diagnosticCode :: [Output] -> Int
 diagnosticCode [] = error $ "No outputs found!"
 diagnosticCode [x] = x
 diagnosticCode (0:xs) = diagnosticCode xs
 diagnosticCode (n:_) = error $ "Unexpected output: " ++ show n
 
-execute :: [Int] -> Code -> ExecutionState
+execute :: OutputMonad m => [Int] -> Code -> m ExecutionState
 execute is c = do
-  go (ExecutionState 0 c is [])
+  go (ExecutionState 0 c is)
   where
-    go :: ExecutionState -> ExecutionState
+    go :: OutputMonad m => ExecutionState -> m ExecutionState
     go state@ExecutionState{..} =
       let op = interpretOpCode (code `index` pos)
       in case op of
         Add m1 m2 ->
-          executeBinOp add m1 m2
+          go $ executeBinOp add m1 m2
         Multiply m1 m2 ->
-          executeBinOp multiply m1 m2
+          go $ executeBinOp multiply m1 m2
         LessThan m1 m2 ->
-          executeBinOp lessThan m1 m2
+          go $ executeBinOp lessThan m1 m2
         Equals m1 m2 ->
-          executeBinOp equals m1 m2
+          go $ executeBinOp equals m1 m2
 
         Input ->
           go state{ pos = pos + 2
@@ -72,16 +89,15 @@ execute is c = do
                   , inputs = tail inputs
                   }
         Output m ->
-          go state{ pos = pos + 2
-                  , outputs = outputs ++ [readOperand m (pos + 1)]
-                  }
+          tell [readOperand m (pos + 1)]
+          >> go state{ pos = pos + 2 }
 
         JumpIfTrue m1 m2 ->
-          executeJump (/= 0) m1 m2
+          go $ executeJump (/= 0) m1 m2
         JumpIfFalse m1 m2 ->
-          executeJump (== 0) m1 m2
+          go $ executeJump (== 0) m1 m2
 
-        Halt -> state
+        Halt -> pure state
       where
       executeBinOp :: BinaryOperation -> Mode -> Mode -> ExecutionState
       executeBinOp op m1 m2 =
@@ -89,15 +105,15 @@ execute is c = do
                        , readOperand m2 (pos + 2)
                        , code `index` (pos + 3)
                        )
-        in go (state{ pos = pos + 4
-                    , code = op operands code
-                    })
+        in state{ pos = pos + 4
+                , code = op operands code
+                }
 
       executeJump :: (Int -> Bool) -> Mode -> Mode -> ExecutionState
       executeJump predicate m1 m2 =
         if predicate (readOperand m1 (pos + 1))
-        then go (state{ pos = readOperand m2 (pos + 2) })
-        else go (state{ pos = pos + 3 })
+        then state{ pos = readOperand m2 (pos + 2) }
+        else state{ pos = pos + 3 }
 
       readOperand :: Mode -> Pos -> Int
       readOperand Immediate p = code `index` p

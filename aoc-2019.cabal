@@ -34,6 +34,7 @@ library
   import:              shared-properties
   hs-source-dirs:      lib
   build-depends:       containers
+                     , mtl
   exposed-modules:     Day1
                      , Day2
                      , Day3
