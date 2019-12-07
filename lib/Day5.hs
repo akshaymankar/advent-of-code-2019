@@ -9,19 +9,21 @@ import Text.ParserCombinators.ReadP
 day5_1 :: IO ()
 day5_1 = do
   input <- readInput
-  print $ diagnosticCode $ outputs $ execute 1 input
+  print $ diagnosticCode $ outputs $ execute [1] input
 
 day5_2 :: IO ()
 day5_2 = do
   input <- readInput
-  print $ diagnosticCode $ outputs $ execute 5 input
+  print $ diagnosticCode $ outputs $ execute [5] input
 
+type Input = Int
 type Output = Int
 type Code = Seq Int
 type Pos = Int
 
 data ExecutionState = ExecutionState { pos :: Pos
                                      , code :: Code
+                                     , inputs :: [Input]
                                      , outputs :: [Output]
                                      }
                     deriving Show
@@ -47,9 +49,9 @@ diagnosticCode [x] = x
 diagnosticCode (0:xs) = diagnosticCode xs
 diagnosticCode (n:_) = error $ "Unexpected output: " ++ show n
 
-execute :: Int -> Code -> ExecutionState
-execute i c = do
-  go (ExecutionState 0 c [])
+execute :: [Int] -> Code -> ExecutionState
+execute is c = do
+  go (ExecutionState 0 c is [])
   where
     go :: ExecutionState -> ExecutionState
     go state@ExecutionState{..} =
@@ -66,7 +68,8 @@ execute i c = do
 
         Input ->
           go state{ pos = pos + 2
-                  , code = update (code `index` (pos + 1)) i code
+                  , code = update (code `index` (pos + 1)) (head inputs) code
+                  , inputs = tail inputs
                   }
         Output m ->
           go state{ pos = pos + 2

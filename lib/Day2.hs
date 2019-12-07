@@ -6,14 +6,14 @@ import Day5
 day2_1 :: IO ()
 day2_1 = do
   intcode <- readInput
-  print $ readPos0 $ execute 0 $ withNounAndVerb 12 02 intcode
+  print $ readPos0 $ execute [] $ withNounAndVerb 12 02 intcode
 
 day2_2 :: IO ()
 day2_2 = do
   intcode <- readInput
   let result = head [100 * noun + verb | noun <- [0..99]
                                        , verb <- [0..99]
-                                       , readPos0 (execute 0 (withNounAndVerb noun verb intcode)) == 19690720
+                                       , readPos0 (execute [] (withNounAndVerb noun verb intcode)) == 19690720
                                        ]
   print result
 
