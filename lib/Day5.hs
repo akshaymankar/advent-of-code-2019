@@ -7,39 +7,33 @@ module Day5 where
 import Data.Char
 import Data.Sequence
 import Text.ParserCombinators.ReadP
-import Control.Monad.Writer
-import Data.Functor.Identity
+import Control.Monad.RWS
 
 day5_1 :: IO ()
 day5_1 = do
-  input <- readInput
+  memory <- readMemory
   print
     $ diagnosticCode
-    $ readOutputs
-    $ execute [1] input
+    $ snd
+    $ executeWith [1]
+    $ mkExecution memory
 
 day5_2 :: IO ()
 day5_2 = do
-  input <- readInput
+  input <- readMemory
   print
     $ diagnosticCode
-    $ readOutputs
-    $ execute [5] input
-
-readOutputs :: Writer [Int] a -> [Int]
-readOutputs = runIdentity . execWriterT
-
-readExecState :: Writer w ExecutionState -> ExecutionState
-readExecState = fst . runIdentity . runWriterT
+    $ snd
+    $ executeWith [5]
+    $ mkExecution input
 
 type Input = Int
 type Output = Int
 type Code = Seq Int
 type Pos = Int
 
-data ExecutionState = ExecutionState { pos :: Pos
+data Memory = Memory { pos :: Pos
                                      , code :: Code
-                                     , inputs :: [Input]
                                      }
                     deriving Show
 
@@ -58,20 +52,23 @@ data Instruction = Add Mode Mode
                  | Halt
                  deriving Show
 
-type OutputMonad = MonadWriter [Int]
-
 diagnosticCode :: [Output] -> Int
 diagnosticCode [] = error $ "No outputs found!"
 diagnosticCode [x] = x
 diagnosticCode (0:xs) = diagnosticCode xs
 diagnosticCode (n:_) = error $ "Unexpected output: " ++ show n
 
-execute :: OutputMonad m => [Int] -> Code -> m ExecutionState
-execute is c = do
-  go (ExecutionState 0 c is)
+type Execution = RWS [Input] [Output] ()
+
+executeWith :: [Input] -> Execution Memory -> (Memory, [Output])
+executeWith is r = evalRWS r is ()
+
+mkExecution :: Code -> Execution Memory
+mkExecution c =
+  go (Memory 0 c)
   where
-    go :: OutputMonad m => ExecutionState -> m ExecutionState
-    go state@ExecutionState{..} =
+    go :: Memory -> Execution Memory
+    go memory@Memory{..} =
       let op = interpretOpCode (code `index` pos)
       in case op of
         Add m1 m2 ->
@@ -83,37 +80,38 @@ execute is c = do
         Equals m1 m2 ->
           go $ executeBinOp equals m1 m2
 
-        Input ->
-          go state{ pos = pos + 2
-                  , code = update (code `index` (pos + 1)) (head inputs) code
-                  , inputs = tail inputs
-                  }
+        Input -> do
+          input <- head <$> ask
+          local tail
+            $ go memory{ pos = pos + 2
+                       , code = update (code `index` (pos + 1)) input code
+                       }
         Output m ->
           tell [readOperand m (pos + 1)]
-          >> go state{ pos = pos + 2 }
+          >> go memory{ pos = pos + 2 }
 
         JumpIfTrue m1 m2 ->
           go $ executeJump (/= 0) m1 m2
         JumpIfFalse m1 m2 ->
           go $ executeJump (== 0) m1 m2
 
-        Halt -> pure state
+        Halt -> pure memory
       where
-      executeBinOp :: BinaryOperation -> Mode -> Mode -> ExecutionState
+      executeBinOp :: BinaryOperation -> Mode -> Mode -> Memory
       executeBinOp op m1 m2 =
         let operands = ( readOperand m1 (pos + 1)
                        , readOperand m2 (pos + 2)
                        , code `index` (pos + 3)
                        )
-        in state{ pos = pos + 4
-                , code = op operands code
-                }
+        in memory{ pos = pos + 4
+                 , code = op operands code
+                 }
 
-      executeJump :: (Int -> Bool) -> Mode -> Mode -> ExecutionState
+      executeJump :: (Int -> Bool) -> Mode -> Mode -> Memory
       executeJump predicate m1 m2 =
         if predicate (readOperand m1 (pos + 1))
-        then state{ pos = readOperand m2 (pos + 2) }
-        else state{ pos = pos + 3 }
+        then memory{ pos = readOperand m2 (pos + 2) }
+        else memory{ pos = pos + 3 }
 
       readOperand :: Mode -> Pos -> Int
       readOperand Immediate p = code `index` p
@@ -166,15 +164,15 @@ interpretOpCode n =
     thousands = somethings 1000
     somethings thing = (n `div` thing) `mod` 10
 
-readInput :: IO Code
-readInput = do
+readMemory :: IO Code
+readMemory = do
   inputStr <- getLine
-  case readP_to_S inputReadP inputStr of
+  case readP_to_S memoryReadP inputStr of
     [(ints, "")] -> pure $ fromList ints
     _ -> error $ "Failed to parse '" ++ inputStr ++ "'"
 
-inputReadP :: ReadP [Int]
-inputReadP = do
+memoryReadP :: ReadP [Int]
+memoryReadP = do
   sepBy1 intReadP commaReadP <* eof
 
 intReadP :: ReadP Int

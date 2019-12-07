@@ -5,7 +5,7 @@ import Data.List (permutations)
 
 day7_1 :: IO ()
 day7_1 = do
-  input <- readInput
+  input <- readMemory
   print $ maximum $ map (calculateThrusterSignal input) (permutations [0..4])
 
 type Setting = Int
@@ -15,6 +15,6 @@ calculateThrusterSignal amplifierController settings =
   foldr executeAmp 0 $ reverse settings
   where
     executeAmp setting input =
-      case readOutputs $ execute [setting, input] amplifierController of
+      case snd $ executeWith [setting, input] $ mkExecution amplifierController of
         [o] -> o
         os -> error $ "expected only one output, got " ++ show os
