@@ -152,7 +152,7 @@ readInput = do
   inputStr <- getLine
   case readP_to_S inputReadP inputStr of
     [(ints, "")] -> pure $ fromList ints
-    lol -> error $ "Failed to parse '" ++ inputStr ++ "'" ++ show lol
+    _ -> error $ "Failed to parse '" ++ inputStr ++ "'"
 
 inputReadP :: ReadP [Int]
 inputReadP = do
