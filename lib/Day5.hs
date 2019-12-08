@@ -7,7 +7,9 @@ module Day5 where
 import Data.Char
 import Data.Sequence
 import Text.ParserCombinators.ReadP
-import Control.Monad.RWS
+import Pipes
+import qualified Pipes.Prelude as P
+import Data.Functor.Identity
 
 day5_1 :: IO ()
 day5_1 = do
@@ -33,9 +35,9 @@ type Code = Seq Int
 type Pos = Int
 
 data Memory = Memory { pos :: Pos
-                                     , code :: Code
-                                     }
-                    deriving Show
+                     , code :: Code
+                     }
+            deriving Show
 
 data Mode = Position
           | Immediate
@@ -58,16 +60,39 @@ diagnosticCode [x] = x
 diagnosticCode (0:xs) = diagnosticCode xs
 diagnosticCode (n:_) = error $ "Unexpected output: " ++ show n
 
-type Execution = RWS [Input] [Output] ()
+data Signal = SignalOutput Output
+            | SignalHalted Memory
 
-executeWith :: [Input] -> Execution Memory -> (Memory, [Output])
-executeWith is r = evalRWS r is ()
+separateMemoryAndOutputs :: [Signal] -> (Memory, [Output])
+separateMemoryAndOutputs ss =
+  let memories = foldr (\s ms -> case s of
+                                   SignalHalted m -> m:ms
+                                   _ -> ms
+                       ) [] ss
+      outputs = foldr (\s os -> case s of
+                                  SignalOutput o -> o:os
+                                  _ -> os
+                      ) [] ss
+  in (head memories, outputs)
 
-mkExecution :: Code -> Execution Memory
+type Execution = Pipe Input Signal Identity ()
+
+executeWith :: [Input] -> Execution -> (Memory, [Output])
+executeWith is r =
+  let inputProducer :: Producer' Input Identity ()
+      inputProducer = each is
+      outputProducer :: Producer' Signal Identity ()
+      outputProducer = inputProducer >-> r
+  in separateMemoryAndOutputs
+     $ fst
+     $ runIdentity
+     $ P.toListM' outputProducer
+
+mkExecution :: Code -> Execution
 mkExecution c =
   go (Memory 0 c)
   where
-    go :: Memory -> Execution Memory
+    go :: Memory -> Execution
     go memory@Memory{..} =
       let op = interpretOpCode (code `index` pos)
       in case op of
@@ -81,21 +106,20 @@ mkExecution c =
           go $ executeBinOp equals m1 m2
 
         Input -> do
-          input <- head <$> ask
-          local tail
-            $ go memory{ pos = pos + 2
-                       , code = update (code `index` (pos + 1)) input code
-                       }
-        Output m ->
-          tell [readOperand m (pos + 1)]
-          >> go memory{ pos = pos + 2 }
+          input <- await
+          go memory{ pos = pos + 2
+                   , code = update (code `index` (pos + 1)) input code
+                   }
+        Output m -> do
+          yield $ SignalOutput $ readOperand m (pos + 1)
+          go memory{ pos = pos + 2 }
 
         JumpIfTrue m1 m2 ->
           go $ executeJump (/= 0) m1 m2
         JumpIfFalse m1 m2 ->
           go $ executeJump (== 0) m1 m2
 
-        Halt -> pure memory
+        Halt -> yield $ SignalHalted memory
       where
       executeBinOp :: BinaryOperation -> Mode -> Mode -> Memory
       executeBinOp op m1 m2 =
