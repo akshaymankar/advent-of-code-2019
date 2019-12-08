@@ -34,9 +34,11 @@ library
   import:              shared-properties
   hs-source-dirs:      lib
   build-depends:       containers
+                     , extra
                      , pipes
                      , pipes-concurrency
                      , stm
+                     , text
   exposed-modules:     Day1
                      , Day2
                      , Day3
@@ -44,6 +46,7 @@ library
                      , Day5
                      , Day6
                      , Day7
+                     , Day8
   other-modules:       IntCode.Execute
                      , IntCode.Read
                      , IntCode.Types
