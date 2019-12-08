@@ -35,6 +35,8 @@ library
   hs-source-dirs:      lib
   build-depends:       containers
                      , pipes
+                     , pipes-concurrency
+                     , stm
   exposed-modules:     Day1
                      , Day2
                      , Day3

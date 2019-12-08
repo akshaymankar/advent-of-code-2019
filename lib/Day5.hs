@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -62,6 +63,7 @@ diagnosticCode (n:_) = error $ "Unexpected output: " ++ show n
 
 data Signal = SignalOutput Output
             | SignalHalted Memory
+            deriving Show
 
 separateMemoryAndOutputs :: [Signal] -> (Memory, [Output])
 separateMemoryAndOutputs ss =
@@ -76,6 +78,7 @@ separateMemoryAndOutputs ss =
   in (head memories, outputs)
 
 type Execution = Pipe Input Signal Identity ()
+type Execution' m = Pipe Input Signal m ()
 
 executeWith :: [Input] -> Execution -> (Memory, [Output])
 executeWith is r =
@@ -83,16 +86,21 @@ executeWith is r =
       inputProducer = each is
       outputProducer :: Producer' Signal Identity ()
       outputProducer = inputProducer >-> r
-  in separateMemoryAndOutputs
-     $ fst
-     $ runIdentity
-     $ P.toListM' outputProducer
+  in consumeExecution outputProducer
 
-mkExecution :: Code -> Execution
+consumeExecution :: Producer' Signal Identity () -> (Memory, [Output])
+consumeExecution p = separateMemoryAndOutputs $ P.toList p
+
+consumeExecutionIO :: Producer' Signal IO () -> IO (Memory, [Output])
+consumeExecutionIO p = do
+  signals <- P.toListM p
+  return $ separateMemoryAndOutputs signals
+
+mkExecution :: Functor m => Code -> Execution' m
 mkExecution c =
   go (Memory 0 c)
   where
-    go :: Memory -> Execution
+    go :: Functor m => Memory -> Execution' m
     go memory@Memory{..} =
       let op = interpretOpCode (code `index` pos)
       in case op of
