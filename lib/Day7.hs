@@ -2,8 +2,10 @@
 {-# LANGUAGE RankNTypes #-}
 module Day7 where
 
-import Day5
 import Data.List (permutations)
+import IntCode.Execute
+import IntCode.Read
+import IntCode.Types
 import Pipes
 import Pipes.Concurrent hiding (Input, Output)
 import Control.Concurrent.STM.TVar (writeTVar)

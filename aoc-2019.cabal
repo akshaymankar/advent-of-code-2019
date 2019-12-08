@@ -44,3 +44,6 @@ library
                      , Day5
                      , Day6
                      , Day7
+  other-modules:       IntCode.Execute
+                     , IntCode.Read
+                     , IntCode.Types

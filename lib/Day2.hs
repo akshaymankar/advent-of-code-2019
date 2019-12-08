@@ -1,7 +1,9 @@
 module Day2 where
 
 import Data.Sequence
-import Day5
+import IntCode.Types
+import IntCode.Read
+import IntCode.Execute
 
 day2_1 :: IO ()
 day2_1 = do
