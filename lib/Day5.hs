@@ -6,7 +6,7 @@ import IntCode.Types
 
 day5_1 :: IO ()
 day5_1 = do
-  memory <- readMemory
+  memory <- parseMemory
   print
     $ diagnosticCode
     $ snd
@@ -15,7 +15,7 @@ day5_1 = do
 
 day5_2 :: IO ()
 day5_2 = do
-  input <- readMemory
+  input <- parseMemory
   print
     $ diagnosticCode
     $ snd

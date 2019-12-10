@@ -13,12 +13,12 @@ import qualified Pipes.Concurrent as P
 
 day7_1 :: IO ()
 day7_1 = do
-  input <- readMemory
+  input <- parseMemory
   print $ maximum $ map (calculateThrusterSignal input) (permutations [0..4])
 
 day7_2 :: IO ()
 day7_2 = do
-  input <- readMemory
+  input <- parseMemory
   print =<< maximum <$> mapM (calculateThrusterSignalWithFeedback input) (permutations [5..9])
 
 calculateThrusterSignal :: Code -> [Input] -> Int

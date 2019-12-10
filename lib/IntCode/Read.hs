@@ -1,15 +1,15 @@
 module IntCode.Read where
 
-import Data.Sequence
+import Data.IntMap
 import Data.Char
 import IntCode.Types
 import Text.ParserCombinators.ReadP
 
-readMemory :: IO Code
-readMemory = do
+parseMemory :: IO Code
+parseMemory = do
   inputStr <- getLine
   case readP_to_S memoryReadP inputStr of
-    [(ints, "")] -> pure $ fromList ints
+    [(ints, "")] -> pure $ fromList $ zip [0..(length ints -1)] ints
     _ -> error $ "Failed to parse '" ++ inputStr ++ "'"
 
 memoryReadP :: ReadP [Int]

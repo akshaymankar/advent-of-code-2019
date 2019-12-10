@@ -1,28 +1,34 @@
 module IntCode.Types where
 
-import Data.Sequence
+import Data.IntMap
 
 type Input = Int
 type Output = Int
-type Code = Seq Int
+type Code = IntMap Int
 type Pos = Int
 
 data Memory = Memory { pos :: Pos
                      , code :: Code
+                     , relativeBase :: Pos
                      }
+              deriving Show
 
 data Mode = Position
           | Immediate
+          | Relative
+              deriving Show
 
-data Instruction = Add Mode Mode
-                 | Multiply Mode Mode
-                 | Input
+data Instruction = Add Mode Mode Mode
+                 | Multiply Mode Mode Mode
+                 | Input Mode
                  | Output Mode
                  | JumpIfTrue Mode Mode
                  | JumpIfFalse Mode Mode
-                 | LessThan Mode Mode
-                 | Equals Mode Mode
+                 | LessThan Mode Mode Mode
+                 | Equals Mode Mode Mode
+                 | AdjustRelativeBase Mode
                  | Halt
+              deriving Show
 
 data Signal = SignalOutput Output
             | SignalHalted Memory

@@ -11,6 +11,7 @@ import Day5
 import Day6
 import Day7
 import Day8
+import Day9
 
 main :: IO ()
 main = do
@@ -19,7 +20,6 @@ main = do
     [name] -> run name
     _ ->
       die "Expected one param with in format day<num>-<num>"
-
 
 run :: String -> IO ()
 run =
@@ -40,4 +40,6 @@ run =
     "day7-2" -> day7_2
     "day8-1" -> day8_1
     "day8-2" -> day8_2
+    "day9-1" -> day9_1
+    "day9-2" -> day9_2
     x -> die $ "'" ++ x ++ "' is not implemented yet."
