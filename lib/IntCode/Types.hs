@@ -32,3 +32,4 @@ data Instruction = Add Mode Mode Mode
 
 data Signal = SignalOutput Output
             | SignalHalted Memory
+            deriving Show
