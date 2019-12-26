@@ -53,6 +53,7 @@ library
                      , Day12
                      , Day13
                      , Day14
+                     , Day15
   other-modules:       IntCode.Execute
                      , IntCode.Read
                      , IntCode.Types
