@@ -18,6 +18,7 @@ import Day12
 import Day13
 import Day14
 import Day15
+import Day16
 
 main :: IO ()
 main = do
@@ -60,4 +61,6 @@ run =
     "day14-2" -> day14_2
     "day15-1" -> day15_1
     "day15-2" -> day15_2
+    "day16-1" -> day16_1
+    "day16-2" -> day16_2
     x -> die $ "'" ++ x ++ "' is not implemented yet."
