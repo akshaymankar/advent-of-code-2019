@@ -74,9 +74,6 @@ renderPixel t =
     HorizontalPaddle -> "🚀"
     Ball -> "🎾"
 
-emptyInput :: Functor m => Pipe RenderedTiles Input m ()
-emptyInput = return ()
-
 smartJoystick :: Functor m => Pipe RenderedTiles Input m ()
 smartJoystick =
   go Nothing

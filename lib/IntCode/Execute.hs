@@ -40,6 +40,9 @@ consumeExecutionIO p = do
   signals <- P.toListM p
   return $ separateMemoryAndOutputs signals
 
+emptyInput :: Functor m => Producer' Input m ()
+emptyInput = return ()
+
 mkExecution :: Functor m => Code -> Execution' m
 mkExecution c =
   go (Memory 0 c 0)

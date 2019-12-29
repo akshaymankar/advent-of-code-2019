@@ -16,7 +16,7 @@ data Memory = Memory { pos :: Pos
 data Mode = Position
           | Immediate
           | Relative
-              deriving Show
+          deriving Show
 
 data Instruction = Add Mode Mode Mode
                  | Multiply Mode Mode Mode

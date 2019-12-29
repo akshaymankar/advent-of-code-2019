@@ -36,10 +36,12 @@ library
   import:              shared-properties
   hs-source-dirs:      lib
   build-depends:       containers
+                     , either
                      , extra
                      , matrix
                      , pipes
                      , pipes-concurrency
+                     , split
                      , stm
                      , text
                      , vector
@@ -59,6 +61,7 @@ library
                      , Day14
                      , Day15
                      , Day16
+                     , Day17
   other-modules:       IntCode.Execute
                      , IntCode.Read
                      , IntCode.Types
